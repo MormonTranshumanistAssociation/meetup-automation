@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+* Always use Typescript
+* Always use pnpm for dependency management

@@ -1,0 +1,24 @@
+# Dependencies
+node_modules
+.pnpm-store/
+.pnpm-debug.log
+
+# Build
+dist/
+.wrangler/
+.dev.vars
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db 

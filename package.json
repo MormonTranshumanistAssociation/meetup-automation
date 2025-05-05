@@ -1,0 +1,21 @@
+{
+	"name": "meetup-automation",
+	"version": "1.0.0",
+	"private": true,
+	"engines": {
+		"node": ">=18.0.0",
+		"pnpm": ">=8.0.0"
+	},
+	"packageManager": "pnpm@10.10.0",
+	"scripts": {
+		"build": "tsc",
+		"dev": "ts-node src/1-generate-image-from-template.ts"
+	},
+	"devDependencies": {
+		"@types/node": "^22.15.1",
+		"typescript": "^5.0.4"
+	},
+	"dependencies": {
+		"jimp": "^1.6.0"
+	}
+}

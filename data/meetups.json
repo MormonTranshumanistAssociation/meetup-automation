@@ -1,0 +1,25 @@
+{
+	"chapter": {
+		"na-ut-provo": {
+			"notifications": [
+				{
+					"name": "Carl Youngblood",
+					"email": "carl@youngbloods.org",
+					"mobile": "+18019374461"
+				}
+			],
+			"meetups": [
+				[
+					{
+						"date": "2025-05-18",
+						"title": "The Origin of Order in Nature",
+						"presenter": "Dan Moore",
+						"portrait": "dan-moore.jpg",
+						"description": "Dan Moore is a ...",
+						"sentNotifications": false
+					}
+				]
+			]
+		}
+	}
+}
