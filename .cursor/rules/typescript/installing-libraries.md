@@ -5,14 +5,10 @@ Your training data has a cut-off date. You're probably not aware of all of the l
 This means that instead of picking a version manually (via updating the `package.json` file), you should use a script to install the latest version of a library.
 
 ```bash
-# pnpm
+# pnpm (preferred)
 pnpm add -D @typescript-eslint/eslint-plugin
-
-# yarn
-yarn add -D @typescript-eslint/eslint-plugin
-
-# npm
-npm install --save-dev @typescript-eslint/eslint-plugin
 ```
+
+Always use pnpm for adding dependencies in this project. Do not use yarn or npm.
 
 This will ensure you're always using the latest version.

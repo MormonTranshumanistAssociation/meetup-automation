@@ -6,16 +6,20 @@
 		"node": ">=18.0.0",
 		"pnpm": ">=8.0.0"
 	},
-	"packageManager": "pnpm@10.10.0",
+	"packageManager": "pnpm@10.11.0",
 	"scripts": {
 		"build": "tsc",
-		"dev": "ts-node src/1-generate-image-from-template.ts"
+		"dev": "ts-node src/1-generate-image-from-template.ts",
+		"generate:image": "ts-node src/generate-image-from-template.ts"
 	},
 	"devDependencies": {
 		"@types/node": "^22.15.1",
+		"ts-node": "11.0.0-beta.1",
 		"typescript": "^5.0.4"
 	},
 	"dependencies": {
-		"jimp": "^1.6.0"
+		"@types/sharp": "^0.32.0",
+		"dotenv": "^16.5.0",
+		"sharp": "^0.34.2"
 	}
 }
