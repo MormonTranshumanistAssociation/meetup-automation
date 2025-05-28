@@ -84,4 +84,21 @@ You can run the image generation script as follows:
 pnpm run generate:image
 ```
 
+This will generate a sample image using hard-coded parameters. You can also pass
+custom parameters for the title, discussion leader, date, time, and portrait file:
+
+```bash
+pnpm run generate:image -- \
+  --title "The Singularity Is Nearer: Revisiting Kurzweil's Prophecies in 2025" \
+  --leader "Carl Youngblood" \
+  --date "13 May 2025" \
+  --time "8pm Mountain time" \
+  --portrait "carl-portrait.jpg" \
+  [--normalize]
+```
+
+The portrait parameter can be either a local image file or a URL to an online image.
+
+- Add `--normalize` to apply auto-leveling (contrast/brightness normalization) to the portrait image.
+
 The result will be in the `output` folder

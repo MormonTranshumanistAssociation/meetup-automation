@@ -3,6 +3,11 @@ import path from "node:path";
 import fs from "node:fs";
 import * as faceapi from "@vladmandic/face-api";
 import canvas from "canvas";
+import os from "node:os";
+import { execSync } from "node:child_process";
+import { pipeline } from "node:stream/promises";
+import { createWriteStream } from "node:fs";
+import { Readable } from "node:stream";
 
 // Patch face-api environment to use node-canvas
 const { Canvas, Image, ImageData } = canvas;
@@ -15,10 +20,72 @@ const backgroundPath = path.join(assetsDir, "galaxy-background.jpg");
 const logoPath = path.join(assetsDir, "mta-logo-lightgrey.png");
 const outputPath = path.join(outputDir, "announcement-image.png");
 
+// Parse command-line arguments
+const args = process.argv.slice(2);
+function getArg(flag: string, fallback: string) {
+	const idx = args.lastIndexOf(flag);
+	return idx !== -1 && args[idx + 1] ? args[idx + 1] : fallback;
+}
+
+const titleText = getArg(
+	"--title",
+	"The Singularity Is Nearer: Revisiting Kurzweil's Prophecies in 2025",
+);
+const leaderName = getArg("--leader", "Carl Youngblood");
+const eventDate = getArg("--date", "13 May 2025");
+const rawPortraitFile = getArg("--portrait", "./assets/carl-portrait.jpg");
+const portraitFile = rawPortraitFile.replace(/\\!/g, "!");
+const timeText = getArg("--time", "8pm Mountain time");
+const normalizePortrait = args.includes("--normalize");
+
 async function loadModels() {
 	const modelPath = path.resolve(__dirname, "../models");
 	await faceapi.nets.ssdMobilenetv1.loadFromDisk(modelPath);
 	await faceapi.nets.faceLandmark68Net.loadFromDisk(modelPath);
+}
+
+function isUrl(str: string) {
+	return /^https?:\/\//.test(str);
+}
+
+async function downloadImage(url: string, dest: string): Promise<string> {
+	const res = await fetch(url, {
+		headers: {
+			"User-Agent":
+				"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+			Accept:
+				"image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+			"Accept-Language": "en-US,en;q=0.9",
+		},
+		redirect: "follow",
+	});
+	if (!res.ok || !res.body) {
+		throw new Error(`Failed to fetch: ${res.status} ${res.statusText}`);
+	}
+	if (typeof Readable.fromWeb === "function") {
+		// @ts-expect-error: Node.js type mismatch workaround
+		await pipeline(Readable.fromWeb(res.body), createWriteStream(dest));
+	} else {
+		// Fallback for older Node.js: buffer the response
+		const buffer = Buffer.from(await res.arrayBuffer());
+		fs.writeFileSync(dest, buffer);
+	}
+
+	// Check if the file is WebP and convert to PNG if needed
+	const fd = fs.openSync(dest, "r");
+	const header = Buffer.alloc(12);
+	fs.readSync(fd, header, 0, 12, 0);
+	fs.closeSync(fd);
+	if (
+		header.toString("ascii", 0, 4) === "RIFF" &&
+		header.toString("ascii", 8, 12) === "WEBP"
+	) {
+		const pngDest = `${dest}.png`;
+		await sharp(dest).png().toFile(pngDest);
+		fs.unlinkSync(dest);
+		return pngDest;
+	}
+	return dest;
 }
 
 async function getFaceCrop(imagePath: string, size: number) {
@@ -35,9 +102,10 @@ async function getFaceCrop(imagePath: string, size: number) {
 	const box = detections.detection.box;
 
 	// Calculate square crop around the face
+	const zoom = 1.9;
 	const centerX = box.x + box.width / 2;
 	const centerY = box.y + box.height / 2;
-	const cropSize = Math.max(box.width, box.height) * 1.7; // show more area around the face
+	const cropSize = Math.max(box.width, box.height) * zoom; // show more area around the face
 	const left = Math.max(0, Math.round(centerX - cropSize / 2));
 	const top = Math.max(0, Math.round(centerY - cropSize / 2));
 	const right = Math.min(img.width, Math.round(centerX + cropSize / 2));
@@ -46,10 +114,13 @@ async function getFaceCrop(imagePath: string, size: number) {
 	const height = bottom - top;
 
 	// Crop and resize to square
-	const cropped = await sharp(imagePath)
+	let sharpPipeline = sharp(imagePath)
 		.extract({ left, top, width, height })
-		.resize(size, size)
-		.toBuffer();
+		.resize(size, size);
+	if (normalizePortrait) {
+		sharpPipeline = sharpPipeline.normalize();
+	}
+	const cropped = await sharpPipeline.toBuffer();
 
 	// Add a 10px border matching the logo color (lighter gray)
 	const borderColor = "#aaaaaa"; // medium gray
@@ -68,7 +139,12 @@ async function getFaceCrop(imagePath: string, size: number) {
 	return bordered;
 }
 
-function createTitleSVG(text: string, width: number, height: number) {
+function createTitleSVG(
+	text: string,
+	width: number,
+	height: number,
+	leader: string,
+) {
 	const fontPath = path.resolve(
 		__dirname,
 		"../assets/abolition-normal-400.woff2",
@@ -97,7 +173,7 @@ function createTitleSVG(text: string, width: number, height: number) {
 	}
 	if (currentLine) lines.push(currentLine.trim());
 	const lineHeight = 80; // match font size for vertical spacing
-	const subtitle = "discussion led by Carl Youngblood";
+	const subtitle = `discussion led by ${leader}`;
 	return `
 	<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
 		<defs>
@@ -123,13 +199,18 @@ function createTitleSVG(text: string, width: number, height: number) {
 	`;
 }
 
-function createEventDetailsSVG(width: number, height: number) {
+function createEventDetailsSVG(
+	width: number,
+	height: number,
+	date: string,
+	time: string,
+) {
 	const subtitleFontPath = path.resolve(
 		__dirname,
 		"../assets/noticia-text-regular.ttf",
 	);
 	const subtitleFontData = fs.readFileSync(subtitleFontPath).toString("base64");
-	const details = ["Meetup", "13 May 2025", "8pm Mountain time"];
+	const details = ["Meetup", date, time];
 	const lineHeight = 48; // match subtitle font size
 	return `
 	<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
@@ -155,6 +236,14 @@ async function generateImage() {
 	// Ensure output directory exists
 	if (!fs.existsSync(outputDir)) {
 		fs.mkdirSync(outputDir);
+	}
+
+	// Handle portrait as URL or file path
+	let portraitPath = portraitFile;
+	let tempFile: string | null = null;
+	if (isUrl(portraitFile)) {
+		tempFile = path.join(os.tmpdir(), `portrait_${Date.now()}`);
+		portraitPath = await downloadImage(portraitFile, tempFile);
 	}
 
 	// Get background metadata
@@ -191,19 +280,21 @@ async function generateImage() {
 		.toBuffer();
 
 	// Add face portrait to top-left
-	const portraitPath = path.join(assetsDir, "carl-portrait.jpg");
 	const faceSize = logoWidth; // use same size as logo
 	const faceMargin = 100;
 	const faceBuffer = await getFaceCrop(portraitPath, faceSize);
 
 	// Title SVG
-	const titleText =
-		"The Singularity Is Nearer: Revisiting Kurzweil's Prophecies in 2025";
 	const titleMargin = 60;
 	const titleWidth =
 		backgroundMeta.width - (faceMargin + faceSize + titleMargin + margin); // space to the right of the portrait
 	const titleHeight = 350; // enough for up to 2 lines and subtitle
-	const titleSVG = createTitleSVG(titleText, titleWidth, titleHeight);
+	const titleSVG = createTitleSVG(
+		titleText,
+		titleWidth,
+		titleHeight,
+		leaderName,
+	);
 	const titleBuffer = Buffer.from(titleSVG);
 
 	// Event details SVG
@@ -216,6 +307,8 @@ async function generateImage() {
 	const eventDetailsSVG = createEventDetailsSVG(
 		eventDetailsWidth,
 		eventDetailsHeight,
+		eventDate,
+		timeText,
 	);
 	const eventDetailsBuffer = Buffer.from(eventDetailsSVG);
 
@@ -249,6 +342,14 @@ async function generateImage() {
 			},
 		])
 		.toFile(outputPath);
+
+	// Clean up temp file if used
+	if (tempFile && fs.existsSync(tempFile)) {
+		fs.unlinkSync(tempFile);
+	}
+	if (tempFile && fs.existsSync(`${tempFile}.png`)) {
+		fs.unlinkSync(`${tempFile}.png`);
+	}
 
 	console.log(`Image generated at: ${outputPath}`);
 }

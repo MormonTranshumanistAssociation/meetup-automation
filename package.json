@@ -10,7 +10,7 @@
 	"scripts": {
 		"build": "tsc",
 		"dev": "ts-node src/1-generate-image-from-template.ts",
-		"generate:image": "ts-node src/generate-image-from-template.ts"
+		"generate:image": "NODE_NO_WARNINGS=1 ts-node src/generate-image-from-template.ts"
 	},
 	"devDependencies": {
 		"@types/node": "^22.15.1",
@@ -23,6 +23,8 @@
 		"@vladmandic/face-api": "^1.7.15",
 		"canvas": "^3.1.0",
 		"dotenv": "^16.5.0",
+		"node-fetch": "^3.3.2",
+		"node-libcurl": "^4.1.0",
 		"sharp": "^0.34.2"
 	}
 }

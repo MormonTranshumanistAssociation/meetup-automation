@@ -2,4 +2,5 @@ onlyBuiltDependencies:
   - '@tensorflow/tfjs-node'
   - canvas
   - core-js
+  - node-libcurl
   - sharp

@@ -1,9 +1,0 @@
-
-> meetup-automation@1.0.0 generate:image /Users/carl/Source/meetup-automation
-> ts-node src/generate-image-from-template.ts
-
-objc[17902]: Class GNotificationCenterDelegate is implemented in both /Users/carl/Source/meetup-automation/node_modules/.pnpm/@img+sharp-libvips-darwin-arm64@1.1.0/node_modules/@img/sharp-libvips-darwin-arm64/lib/libvips-cpp.8.16.1.dylib (0x11e4fda98) and /Users/carl/Source/meetup-automation/node_modules/.pnpm/canvas@3.1.0/node_modules/canvas/build/Release/libgio-2.0.0.dylib (0x11cf14648). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
-(node:17902) [DEP0051] DeprecationWarning: The `util.isNullOrUndefined` API is deprecated. Please use `arg === null || arg === undefined` instead.
-(Use `node --trace-deprecation ...` to show where the warning was created)
-(node:17902) [DEP0044] DeprecationWarning: The `util.isArray` API is deprecated. Please use `Array.isArray()` instead.
-Image generated at: /Users/carl/Source/meetup-automation/output/announcement-image.png
