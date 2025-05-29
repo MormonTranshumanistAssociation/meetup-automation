@@ -30,7 +30,7 @@ jobs:
       - name: Install serverless framework
         run: npm install -g serverless
       - name: Build project
-        run: npm run build && du -sh dist && ls -lh dist
+        run: npm run build && du -sh dist/* && ls -lh dist
       - name: Serverless deploy
         run: npx serverless deploy
         env:
