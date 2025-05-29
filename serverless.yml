@@ -1,0 +1,16 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: transfigurism
+
+app: meetup-automation
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: generate-announcement
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+
+functions:
+  api:
+    handler: dist/handler.handler
+    events:
+      - httpApi: "*"

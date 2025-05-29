@@ -3,4 +3,5 @@ onlyBuiltDependencies:
   - canvas
   - core-js
   - node-libcurl
+  - serverless
   - sharp

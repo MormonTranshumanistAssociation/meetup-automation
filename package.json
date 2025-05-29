@@ -13,6 +13,7 @@
 		"generate:image": "NODE_NO_WARNINGS=1 ts-node src/generate-image-from-template.ts"
 	},
 	"devDependencies": {
+		"@types/express": "^5.0.2",
 		"@types/node": "^22.15.1",
 		"ts-node": "11.0.0-beta.1",
 		"typescript": "^5.0.4"
@@ -23,8 +24,11 @@
 		"@vladmandic/face-api": "^1.7.15",
 		"canvas": "^3.1.0",
 		"dotenv": "^16.5.0",
+		"express": "^4.19.2",
 		"node-fetch": "^3.3.2",
 		"node-libcurl": "^4.1.0",
+		"serverless": "^4.14.4",
+		"serverless-http": "^3.2.0",
 		"sharp": "^0.34.2"
 	}
 }

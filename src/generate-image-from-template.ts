@@ -63,7 +63,6 @@ async function downloadImage(url: string, dest: string): Promise<string> {
 		throw new Error(`Failed to fetch: ${res.status} ${res.statusText}`);
 	}
 	if (typeof Readable.fromWeb === "function") {
-		// @ts-expect-error: Node.js type mismatch workaround
 		await pipeline(Readable.fromWeb(res.body), createWriteStream(dest));
 	} else {
 		// Fallback for older Node.js: buffer the response

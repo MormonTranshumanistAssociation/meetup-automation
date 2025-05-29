@@ -1,0 +1,45 @@
+name: Example build
+
+on:
+  push:
+    branches: [ main, dev ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::211364239646:role/GHARole
+          aws-region: us-west-2
+      - name: Print out environment variables
+        uses: shayki5/print-workflow-dispatch-inputs@v1
+        with:
+          print_env_vars: 'true'
+      - name: NodeJS with cache
+        uses: Drafteame/node-cache-action@v0.3.0
+        with:
+          node-version: 22.8.0
+      - name: Install dependencies
+        run: npm install
+      - name: Install serverless framework
+        run: npm install -g serverless
+      - name: Build project
+        run: npm run build
+      - name: Serverless deploy
+        run: npx serverless deploy --param="tableName=users-table-${{ github.ref_name }}"
+        env:
+          SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: Linux-nodejs-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            Linux-nodejs-
+
